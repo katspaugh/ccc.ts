@@ -39,7 +39,8 @@ function createStableStubProxy<T extends FeatureImplementation>(
       if (stubCache.has(prop)) return stubCache.get(prop)
 
       const name = String(prop)
-      const stub = name[0] >= 'A' && name[0] <= 'Z' ? () => null : undefined
+      const first = name[0] ?? ''
+      const stub = first >= 'A' && first <= 'Z' ? () => null : undefined
       stubCache.set(prop, stub)
       return stub
     },
