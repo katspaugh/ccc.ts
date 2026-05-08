@@ -70,3 +70,50 @@ describe('useLoadFeature — enabled and successful', () => {
     expect(result.current.name).toBe('success-test')
   })
 })
+
+describe('useLoadFeature — stub proxy', () => {
+  it('returns () => null for PascalCase props', () => {
+    const handle = createFeatureHandle<TestImpl>({
+      name: 'stub-pascal',
+      useIsEnabled: () => false,
+      load: async () => ({ default: { TestWidget: () => null, testService: () => 'x' } }),
+    })
+
+    const { result } = renderHook(() => useLoadFeature(handle))
+
+    expect(typeof result.current.TestWidget).toBe('function')
+    expect(result.current.TestWidget()).toBeNull()
+  })
+
+  it('returns undefined for camelCase props', () => {
+    const handle = createFeatureHandle<TestImpl>({
+      name: 'stub-camel',
+      useIsEnabled: () => false,
+      load: async () => ({ default: { TestWidget: () => null, testService: () => 'x' } }),
+    })
+
+    const { result } = renderHook(() => useLoadFeature(handle))
+
+    expect(result.current.testService).toBeUndefined()
+  })
+
+  it('reads meta props from the ref so values stay current', () => {
+    let isEnabled: boolean | undefined = false
+    const handle = createFeatureHandle<TestImpl>({
+      name: 'stub-meta',
+      useIsEnabled: () => isEnabled,
+      load: async () => ({ default: { TestWidget: () => null, testService: () => 'x' } }),
+    })
+
+    const { result, rerender } = renderHook(() => useLoadFeature(handle))
+
+    expect(result.current.$isDisabled).toBe(true)
+    expect(result.current.$isReady).toBe(false)
+
+    isEnabled = undefined
+    rerender()
+
+    expect(result.current.$isDisabled).toBe(false)
+    expect(result.current.$isReady).toBe(false)
+  })
+})
