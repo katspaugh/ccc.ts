@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook } from '@testing-library/react'
+import { renderHook, waitFor } from '@testing-library/react'
 import { createFeatureHandle } from '../createFeatureHandle'
 import { useLoadFeature, _resetFeatureRegistry } from '../useLoadFeature'
 
@@ -44,5 +44,29 @@ describe('useLoadFeature — loading flag', () => {
     expect(result.current.$isDisabled).toBe(false)
     expect(result.current.$isReady).toBe(false)
     expect(load).not.toHaveBeenCalled()
+  })
+})
+
+describe('useLoadFeature — enabled and successful', () => {
+  it('loads the feature and exposes the implementation', async () => {
+    const TestWidget = () => null
+    const testService = () => 'hello'
+    const handle = createFeatureHandle<TestImpl>({
+      name: 'success-test',
+      useIsEnabled: () => true,
+      load: async () => ({ default: { TestWidget, testService } }),
+    })
+
+    const { result } = renderHook(() => useLoadFeature(handle))
+
+    expect(result.current.$isReady).toBe(false)
+
+    await waitFor(() => expect(result.current.$isReady).toBe(true))
+
+    expect(result.current.$isDisabled).toBe(false)
+    expect(result.current.$error).toBeUndefined()
+    expect(result.current.TestWidget).toBe(TestWidget)
+    expect(result.current.testService()).toBe('hello')
+    expect(result.current.name).toBe('success-test')
   })
 })
