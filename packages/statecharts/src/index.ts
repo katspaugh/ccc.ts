@@ -17,3 +17,5 @@ export type {
   EffectEntry,
   EffectsConfig,
 } from './defineMachine'
+export { createMachine } from './createMachine'
+export type { Store, StoreState, StoreEvent, CreateMachineOptions } from './createMachine'
