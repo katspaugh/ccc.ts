@@ -9,10 +9,10 @@ TypeScript applications.
 | ----------------------------------------------- | ------------------------------------------------------------------------------------ |
 | [`@ccc-ts/feature-arch`](packages/feature-arch) | Lazy-loaded, feature-flagged, isolated feature modules for React apps.               |
 | [`@ccc-ts/eslint-plugin-feature-arch`](packages/eslint-plugin-feature-arch) | ESLint rule enforcing the feature-arch folder convention. |
+| [`@ccc-ts/result`](packages/result)             | A tiny, dependency-free `Result<T, E>` with tree-shakeable operators.                |
 
 Planned:
 
-- `@ccc-ts/result` — `Result<T, E>` type.
 - `@ccc-ts/statecharts` — state-chart implementation.
 
 ## Development
