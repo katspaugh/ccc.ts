@@ -22,3 +22,5 @@ export type { Store, StoreState, StoreEvent, CreateMachineOptions } from './crea
 export { match } from './match'
 export type { MatchHandlers } from './match'
 export { useMachine } from './useMachine'
+export { serialize, hydrate, SNAPSHOT_VERSION } from './persistence'
+export type { Snapshot, HydrateOptions, HydratedInitial } from './persistence'
