@@ -71,7 +71,7 @@ export const rule = createRule<Options, MessageIds>({
   defaultOptions: [{ featuresDir: 'features' }],
   create(context, [opts]) {
     const featuresDir = opts?.featuresDir ?? 'features'
-    const filename = context.filename ?? context.getFilename()
+    const filename = context.filename
 
     const importerSegs = segmentsAfterFeaturesDir(filename, featuresDir)
     const importerFeature =
