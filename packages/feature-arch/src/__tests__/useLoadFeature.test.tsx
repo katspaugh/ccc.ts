@@ -235,3 +235,33 @@ describe('_resetFeatureRegistry', () => {
     expect(load).toHaveBeenCalledTimes(2)
   })
 })
+
+describe('useLoadFeature — cancellation', () => {
+  it('does not setState after unmount mid-load', async () => {
+    let resolveLoad: ((v: { default: TestImpl }) => void) | undefined
+    const loadPromise = new Promise<{ default: TestImpl }>((resolve) => {
+      resolveLoad = resolve
+    })
+
+    const handle = createFeatureHandle<TestImpl>({
+      name: 'cancel-test',
+      useIsEnabled: () => true,
+      load: () => loadPromise,
+    })
+
+    const { result, unmount } = renderHook(() => useLoadFeature(handle))
+    expect(result.current.$isReady).toBe(false)
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    unmount()
+    resolveLoad!({ default: { TestWidget: () => null, testService: () => 'late' } })
+
+    // Allow microtasks to flush
+    await new Promise((r) => setTimeout(r, 0))
+
+    // No "Can't perform a React state update on an unmounted component" warning
+    expect(errorSpy).not.toHaveBeenCalled()
+    errorSpy.mockRestore()
+  })
+})
