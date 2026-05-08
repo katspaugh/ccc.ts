@@ -135,3 +135,42 @@ describe('useLoadFeature — stable proxy reference', () => {
     expect(second).toBe(first)
   })
 })
+
+describe('useLoadFeature — shared registry', () => {
+  it('dedupes concurrent loads of the same handle', async () => {
+    const TestWidget = () => null
+    const testService = () => 'shared'
+    const load = vi.fn(async () => ({ default: { TestWidget, testService } }))
+
+    const handle = createFeatureHandle<TestImpl>({
+      name: 'shared-dedupe',
+      useIsEnabled: () => true,
+      load,
+    })
+
+    const { result: r1 } = renderHook(() => useLoadFeature(handle))
+    const { result: r2 } = renderHook(() => useLoadFeature(handle))
+
+    await waitFor(() => expect(r1.current.$isReady).toBe(true))
+    await waitFor(() => expect(r2.current.$isReady).toBe(true))
+
+    expect(load).toHaveBeenCalledTimes(1)
+    expect(r1.current.testService()).toBe('shared')
+    expect(r2.current.testService()).toBe('shared')
+  })
+
+  it('returns cached result synchronously on first render after another consumer resolved', async () => {
+    const handle = createFeatureHandle<TestImpl>({
+      name: 'sync-cache-hit',
+      useIsEnabled: () => true,
+      load: async () => ({ default: { TestWidget: () => null, testService: () => 'cached' } }),
+    })
+
+    const { result: first } = renderHook(() => useLoadFeature(handle))
+    await waitFor(() => expect(first.current.$isReady).toBe(true))
+
+    const { result: second } = renderHook(() => useLoadFeature(handle))
+    expect(second.current.$isReady).toBe(true)
+    expect(second.current.testService()).toBe('cached')
+  })
+})
