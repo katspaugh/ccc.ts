@@ -68,3 +68,27 @@ ruleTester.run('no-feature-internals', rule, {
     },
   ],
 })
+
+ruleTester.run('no-feature-internals (custom featuresDir)', rule, {
+  valid: [
+    {
+      code: "import x from '@/modules/walletconnect'",
+      filename: '/proj/src/app/page.tsx',
+      options: [{ featuresDir: 'modules' }],
+    },
+    // 'features' segment in path is no longer special
+    {
+      code: "import x from '@/features/walletconnect/components/Widget'",
+      filename: '/proj/src/app/page.tsx',
+      options: [{ featuresDir: 'modules' }],
+    },
+  ],
+  invalid: [
+    {
+      code: "import x from '@/modules/walletconnect/components/Widget'",
+      filename: '/proj/src/app/page.tsx',
+      options: [{ featuresDir: 'modules' }],
+      errors: [{ messageId: 'noInternals' }],
+    },
+  ],
+})
