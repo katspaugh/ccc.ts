@@ -2,7 +2,14 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'reac
 import { createMachine } from './createMachine'
 import type { CreateMachineOptions, StoreState } from './createMachine'
 import type { Machine } from './defineMachine'
+import { registerMachine } from './inspector/registry'
 import type { EventsMap, StatesMap } from './types'
+
+function machineLabel<S extends StatesMap, E extends EventsMap>(
+  machine: Machine<S, E>
+): string {
+  return `machine:${machine.initial.state.id}`
+}
 
 export function useMachine<S extends StatesMap, E extends EventsMap>(
   machine: Machine<S, E>,
@@ -14,7 +21,12 @@ export function useMachine<S extends StatesMap, E extends EventsMap>(
   const initialOptionsRef = useRef(options)
   // Lazy create on first render; kept across re-renders. The same store
   // instance is reused across StrictMode's synchronous double-mount.
-  const [store] = useState(() => createMachine(machine, initialOptionsRef.current))
+  // registerMachine wraps store.dispose so deregistration cascades automatically.
+  const [store] = useState(() => {
+    const s = createMachine(machine, initialOptionsRef.current)
+    registerMachine(machineLabel(machine), s as never)
+    return s
+  })
 
   // Cache the last snapshot so useSyncExternalStore sees a stable reference
   // when the state hasn't actually changed (avoids the infinite-loop warning).
