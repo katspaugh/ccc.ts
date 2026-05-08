@@ -263,15 +263,16 @@ git commit -m "docs: add feature-arch design spec and implementation plan"
 
 - [ ] **Step 2: Write `packages/feature-arch/tsconfig.json`**
 
+Note: include the tooling configs so editor TS servers can resolve their imports.
+
 ```json
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src",
     "types": ["vitest/globals"]
   },
-  "include": ["src"],
+  "include": ["src", "tsup.config.ts", "vitest.config.ts", "vitest.setup.ts"],
   "exclude": ["dist", "node_modules"]
 }
 ```
@@ -1408,10 +1409,9 @@ git commit -m "docs(feature-arch): add README and feature-layout guide"
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src",
     "types": ["vitest/globals", "node"]
   },
-  "include": ["src"],
+  "include": ["src", "tsup.config.ts", "vitest.config.ts"],
   "exclude": ["dist", "node_modules"]
 }
 ```
