@@ -23,7 +23,7 @@ describe('match', () => {
 
   it('handler return types unify into U', () => {
     const r: Result<number, string> = ok(1)
-    const v = match(r, {
+    const v = match<number, string, number | string>(r, {
       ok: () => 1,
       err: () => 'no',
     })

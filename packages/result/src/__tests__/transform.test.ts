@@ -50,8 +50,11 @@ describe('andThen', () => {
   })
 
   it('accumulates error type as E | F', () => {
-    const r1: Result<number, 'a'> = ok(1)
-    const r2 = andThen(r1, (n) => (n > 0 ? ok(String(n)) : err('b' as const)))
+    const r1 = ok(1) as Result<number, 'a'>
+    const r2 = andThen(
+      r1,
+      (n): Result<string, 'b'> => (n > 0 ? ok(String(n)) : err('b' as const)),
+    )
     const _: Equal<typeof r2, Result<string, 'a' | 'b'>> = true
     void _
   })

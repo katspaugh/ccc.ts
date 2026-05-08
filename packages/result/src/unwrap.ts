@@ -5,7 +5,7 @@ import type { Result } from './types'
  * `cause` holds the original Err.error.
  */
 export class UnwrapError extends Error {
-  readonly cause: unknown
+  override readonly cause: unknown
 
   constructor(cause: unknown) {
     super(`Result.unwrap on Err: ${formatCause(cause)}`)
