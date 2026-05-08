@@ -2,7 +2,6 @@
 import { act, render, renderHook, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { StrictMode } from 'react'
-import { createMachine } from '../createMachine'
 import { defineMachine } from '../defineMachine'
 import { defineEvents, defineStates } from '../tokens'
 import { useMachine } from '../useMachine'
