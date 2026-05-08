@@ -117,3 +117,21 @@ describe('useLoadFeature — stub proxy', () => {
     expect(result.current.$isReady).toBe(false)
   })
 })
+
+describe('useLoadFeature — stable proxy reference', () => {
+  it('returns the same proxy reference across re-renders while not ready', () => {
+    const handle = createFeatureHandle<TestImpl>({
+      name: 'stable-ref',
+      useIsEnabled: () => false,
+      load: async () => ({ default: { TestWidget: () => null, testService: () => 'x' } }),
+    })
+
+    const { result, rerender } = renderHook(() => useLoadFeature(handle))
+
+    const first = result.current
+    rerender()
+    const second = result.current
+
+    expect(second).toBe(first)
+  })
+})
