@@ -23,6 +23,15 @@ pnpm -r build
 pnpm -r test
 ```
 
+## Releases
+
+Versioning is handled by [changesets](https://github.com/changesets/changesets).
+After a PR with a changeset is merged to `main`, the release workflow opens (or
+updates) a "Version Packages" PR. Merging that PR publishes to npm.
+
+The release workflow requires an `NPM_TOKEN` secret with publish access to the
+`@ccc-ts` scope, configured in the repo's GitHub settings.
+
 ## License
 
 MIT

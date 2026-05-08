@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { FeatureHandle, FeatureImplementation, FeatureMeta } from './types'
+import type { FeatureHandle, FeatureImplementation, FeatureMeta, LoadedFeature } from './types'
 
 type LoadResult<T> = { feature: T } | { error: Error } | undefined
 
@@ -100,13 +100,12 @@ export function _resetFeatureRegistry(): void {
  */
 export function useLoadFeature<T extends FeatureImplementation>(
   handle: FeatureHandle<T>,
-): T & { name: string; useIsEnabled: () => boolean | undefined } & FeatureMeta {
-  type LoadedFeatureT = T & { name: string; useIsEnabled: () => boolean | undefined }
-
+): LoadedFeature<T> {
   const isEnabled = handle.useIsEnabled()
 
-  const [loaded, setLoaded] = useState<LoadResult<LoadedFeatureT>>(
-    () => (isEnabled === true ? getCachedResult(handle.name) : undefined) as unknown as LoadResult<LoadedFeatureT>,
+  const [loaded, setLoaded] = useState<LoadResult<LoadedFeature<T>>>(
+    () =>
+      (isEnabled === true ? getCachedResult(handle.name) : undefined) as unknown as LoadResult<LoadedFeature<T>>,
   )
 
   useEffect(() => {
@@ -114,7 +113,7 @@ export function useLoadFeature<T extends FeatureImplementation>(
 
     const cached = getCachedResult(handle.name)
     if (cached) {
-      setLoaded(cached as unknown as LoadResult<LoadedFeatureT>)
+      setLoaded(cached as unknown as LoadResult<LoadedFeature<T>>)
       return
     }
 
@@ -123,7 +122,7 @@ export function useLoadFeature<T extends FeatureImplementation>(
     getOrCreateLoadPromise(handle).then(
       (result) => {
         if (cancelled) return
-        setLoaded(result as unknown as LoadResult<LoadedFeatureT>)
+        setLoaded(result as unknown as LoadResult<LoadedFeature<T>>)
       },
       (err) => {
         if (cancelled) return
@@ -137,21 +136,19 @@ export function useLoadFeature<T extends FeatureImplementation>(
   }, [isEnabled, handle])
 
   const feature = getFeature(loaded)
-  const meta: FeatureMeta = {
-    $isDisabled: isEnabled === false,
-    $isReady: !!feature,
-    $error: getError(loaded),
-  }
+  const $isDisabled = isEnabled === false
+  const $isReady = !!feature
+  const $error = getError(loaded)
 
-  const metaRef = useRef<FeatureMeta>(meta)
-  metaRef.current = meta
+  const metaRef = useRef<FeatureMeta>({ $isDisabled, $isReady, $error })
+  metaRef.current = { $isDisabled, $isReady, $error }
 
   const stubProxy = useMemo(() => createStableStubProxy<T>(metaRef), [])
 
   return useMemo(() => {
     if (feature) {
-      return { ...feature, ...meta } as LoadedFeatureT & FeatureMeta
+      return { ...feature, $isDisabled, $isReady, $error } as LoadedFeature<T>
     }
-    return stubProxy as unknown as LoadedFeatureT & FeatureMeta
-  }, [feature, stubProxy, meta])
+    return stubProxy as unknown as LoadedFeature<T>
+  }, [feature, stubProxy, $isDisabled, $isReady, $error])
 }
