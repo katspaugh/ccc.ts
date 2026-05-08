@@ -1,5 +1,5 @@
 import type { EffectEntry, EffectFn, Machine } from './defineMachine'
-import type { EventsMap, StatesMap, StateToken } from './types'
+import type { EventsMap, StatesMap, StateToken, StateValue } from './types'
 
 export type StoreEvent =
   | {
@@ -29,11 +29,7 @@ export type StoreEvent =
       reason: 'no-handler' | 'guard-false'
     }
 
-export type StoreState<S extends StatesMap> = {
-  readonly name: keyof S & string
-  readonly context: S[keyof S & string]
-  is<N extends keyof S & string>(token: StateToken<N, S[N]>): boolean
-}
+export type StoreState<S extends StatesMap> = StateValue<S>
 
 export type Store<S extends StatesMap, E extends EventsMap> = {
   getState(): StoreState<S>
@@ -114,10 +110,10 @@ export function createMachine<S extends StatesMap, E extends EventsMap>(
     return {
       name,
       context,
-      is(token) {
+      is(token: StateToken<string, unknown>) {
         return token.id === name
       },
-    }
+    } as unknown as StoreState<S>
   }
 
   const startEffectFor = (stateName: string, ctx: unknown, isHydrate: boolean): void => {

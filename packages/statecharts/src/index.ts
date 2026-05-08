@@ -19,3 +19,5 @@ export type {
 } from './defineMachine'
 export { createMachine } from './createMachine'
 export type { Store, StoreState, StoreEvent, CreateMachineOptions } from './createMachine'
+export { match } from './match'
+export type { MatchHandlers } from './match'
