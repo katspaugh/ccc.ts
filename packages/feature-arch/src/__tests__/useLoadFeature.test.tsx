@@ -174,3 +174,64 @@ describe('useLoadFeature — shared registry', () => {
     expect(second.current.testService()).toBe('cached')
   })
 })
+
+describe('useLoadFeature — errors', () => {
+  it('exposes load failures via $error and does not cache the error', async () => {
+    let attempts = 0
+    const handle = createFeatureHandle<TestImpl>({
+      name: 'error-test',
+      useIsEnabled: () => true,
+      load: async () => {
+        attempts++
+        throw new Error('boom')
+      },
+    })
+
+    const { result, unmount } = renderHook(() => useLoadFeature(handle))
+
+    await waitFor(() => expect(result.current.$error).toBeInstanceOf(Error))
+    expect(result.current.$error?.message).toBe('boom')
+    expect(result.current.$isReady).toBe(false)
+
+    unmount()
+
+    const { result: retry } = renderHook(() => useLoadFeature(handle))
+    await waitFor(() => expect(retry.current.$error).toBeInstanceOf(Error))
+    expect(attempts).toBe(2)
+  })
+
+  it('coerces non-Error rejections to Error', async () => {
+    const handle = createFeatureHandle<TestImpl>({
+      name: 'non-error-reject',
+      useIsEnabled: () => true,
+      load: async () => {
+        throw 'string-rejection'
+      },
+    })
+
+    const { result } = renderHook(() => useLoadFeature(handle))
+    await waitFor(() => expect(result.current.$error).toBeInstanceOf(Error))
+    expect(result.current.$error?.message).toBe('string-rejection')
+  })
+})
+
+describe('_resetFeatureRegistry', () => {
+  it('clears cache so a subsequent mount triggers a fresh load', async () => {
+    const load = vi.fn(async () => ({ default: { TestWidget: () => null, testService: () => 'v' } }))
+    const handle = createFeatureHandle<TestImpl>({
+      name: 'reset-test',
+      useIsEnabled: () => true,
+      load,
+    })
+
+    const { result: first } = renderHook(() => useLoadFeature(handle))
+    await waitFor(() => expect(first.current.$isReady).toBe(true))
+    expect(load).toHaveBeenCalledTimes(1)
+
+    _resetFeatureRegistry()
+
+    const { result: second } = renderHook(() => useLoadFeature(handle))
+    await waitFor(() => expect(second.current.$isReady).toBe(true))
+    expect(load).toHaveBeenCalledTimes(2)
+  })
+})
